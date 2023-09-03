@@ -18,7 +18,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Models\" />
     <Folder Include="wwwroot\adminpanel\assets\libs\%40fortawesome\fontawesome-free\less\" />
     <Folder Include="wwwroot\adminpanel\assets\libs\%40fortawesome\fontawesome-free\scss\" />
     <Folder Include="wwwroot\adminpanel\assets\libs\%40iconscout\unicons\node_modules\" />
