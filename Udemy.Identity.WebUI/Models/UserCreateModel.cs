@@ -17,6 +17,7 @@ namespace Udemy.Identity.WebUI.Models
 
         [Compare("Password",ErrorMessage ="Parolalar eşleşmiyor")]
         public string ConfirmPassword { get; set; }
+        public string Gender { get; set; }
 
     }
 }
