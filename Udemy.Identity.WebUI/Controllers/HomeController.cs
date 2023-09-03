@@ -1,19 +1,24 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 using Udemy.Identity.WebUI.Entities;
 using Udemy.Identity.WebUI.Models;
 
 namespace Udemy.Identity.WebUI.Controllers
 {
+    [AutoValidateAntiforgeryToken]
     public class HomeController : Controller
     {
         private readonly UserManager<AppUser> _userManager;
         private readonly SignInManager<AppUser> _signInManager;
+        private readonly RoleManager<AppRole> _roleManager;
 
-        public HomeController(UserManager<AppUser> userManager, SignInManager<AppUser> signInManager)
+        public HomeController(UserManager<AppUser> userManager, SignInManager<AppUser> signInManager, RoleManager<AppRole> roleManager)
         {
             _userManager = userManager;
             _signInManager = signInManager;
+            _roleManager = roleManager;
         }
 
         public IActionResult Index()
@@ -40,8 +45,17 @@ namespace Udemy.Identity.WebUI.Controllers
                     ImagePath = "test",
                 };
                 var identityResult = await _userManager.CreateAsync(user, model.Password);
+
+               await _roleManager.CreateAsync(new()
+                {
+                   Name="Admin",CreatedTime=DateTime.Now,
+                });
+
+             
+
                 if (identityResult.Succeeded)
                 {
+                    await _userManager.AddToRoleAsync(user, "Admin");
                     return RedirectToAction("Index", "Home");
                 }
 
@@ -79,6 +93,15 @@ namespace Udemy.Identity.WebUI.Controllers
                 }
             }
             return View(model);
+        }
+
+
+        [Authorize]
+        public IActionResult GetUserInfo()
+        {
+            var user = User.Identity;
+            var role = User.Claims.FirstOrDefault(x => x.Type == ClaimTypes.Role).Value;
+            return View();
         }
     }
 }

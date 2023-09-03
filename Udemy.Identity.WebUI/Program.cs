@@ -12,7 +12,8 @@ builder.Services.AddIdentity<AppUser, AppRole>(opt =>
     opt.Password.RequiredLength = 2;
     opt.Password.RequireLowercase = false;
     opt.Password.RequireUppercase = false;
-    opt.Password.RequireNonAlphanumeric=false;
+    opt.Password.RequireNonAlphanumeric = false;
+    //opt.SignIn.RequireConfirmedEmail = true; 
 }).AddEntityFrameworkStores<AppDbContext>();
 
 builder.Services.AddDbContext<AppDbContext>(opt =>
@@ -35,4 +36,15 @@ app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
 
+app.UseRouting();
+
+
+app.UseAuthentication();
+app.UseAuthorization();
+
+
+app.UseEndpoints(endpoints =>
+{
+    endpoints.MapDefaultControllerRoute();
+});
 app.Run();
