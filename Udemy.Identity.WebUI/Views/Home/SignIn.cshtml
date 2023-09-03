@@ -30,6 +30,7 @@
             <div class="card overflow-hidden sm:rounded-md rounded-none">
                 <div class="px-6 py-8">
 
+                    <input type="hidden" asp-for="ReturnUrl" />
                     <a href="index.html" class="flex justify-center mb-8">
                         <img class="h-6" src="/adminpanel/assets/images/logo-dark.png" alt="">
                     </a>
@@ -50,12 +51,12 @@
                         <input asp-for="Password" class="form-input" type="password" placeholder="Enter your password">
                     </div>
 
-             
 
-                    @*    <div class="flex items-center mb-4">
-                    <input type="checkbox" class="form-checkbox rounded" id="checkbox-signin">
-                    <label class="ms-2" for="checkbox-signin">I accept <a href="#" class="text-primary">Terms and Conditions</a></label>
-                    </div> *@
+
+                    <div class="flex items-center mb-4">
+                        <input type="checkbox" class="form-checkbox rounded" asp-for="RememberMe">
+                        <label class="ms-2" for="checkbox-signin">I accept <a href="#" class="text-primary">Terms and Conditions</a></label>
+                    </div>
 
                     <div class="flex justify-center mb-3">
                         <button type="submit" class="btn w-full text-white bg-primary"> Kayıt Ol </button>

@@ -9,12 +9,23 @@ builder.Services.AddControllersWithViews();
 builder.Services.AddIdentity<AppUser, AppRole>(opt =>
 {
     opt.Password.RequireDigit = false;
-    opt.Password.RequiredLength = 2;
+    opt.Password.RequiredLength = 2; 
     opt.Password.RequireLowercase = false;
     opt.Password.RequireUppercase = false;
     opt.Password.RequireNonAlphanumeric = false;
     //opt.SignIn.RequireConfirmedEmail = true; 
 }).AddEntityFrameworkStores<AppDbContext>();
+
+
+builder.Services.ConfigureApplicationCookie(opt =>
+{
+    opt.Cookie.HttpOnly = true;
+    opt.Cookie.SameSite = SameSiteMode.Strict;
+    opt.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
+    opt.Cookie.Name = "UdemyCookie";
+    opt.ExpireTimeSpan = TimeSpan.FromDays(2);
+    opt.LoginPath = new PathString("/Home/SignIn");
+});
 
 builder.Services.AddDbContext<AppDbContext>(opt =>
 {

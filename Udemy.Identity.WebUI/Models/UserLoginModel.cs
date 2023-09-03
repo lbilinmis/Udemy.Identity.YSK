@@ -10,8 +10,9 @@ namespace Udemy.Identity.WebUI.Models
         [Required(ErrorMessage = "Password giriniz")]
 
         public string Password { get; set; }
+        public string ReturnUrl { get; set; }
+        public bool RememberMe { get; set; }
 
-   
 
     }
 }

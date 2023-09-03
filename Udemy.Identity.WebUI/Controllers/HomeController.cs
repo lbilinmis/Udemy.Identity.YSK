@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore.Query.Internal;
 using System.Security.Claims;
 using Udemy.Identity.WebUI.Entities;
 using Udemy.Identity.WebUI.Models;
@@ -45,17 +46,23 @@ namespace Udemy.Identity.WebUI.Controllers
                     ImagePath = "test",
                 };
                 var identityResult = await _userManager.CreateAsync(user, model.Password);
+                var memberRole = await _roleManager.FindByNameAsync("Member");
 
-               await _roleManager.CreateAsync(new()
+                if (memberRole == null)
                 {
-                   Name="Admin",CreatedTime=DateTime.Now,
-                });
+                    await _roleManager.CreateAsync(new()
+                    {
+                        Name = "Member",
+                        CreatedTime = DateTime.Now,
+                    });
 
-             
+                }
+
+
 
                 if (identityResult.Succeeded)
                 {
-                    await _userManager.AddToRoleAsync(user, "Admin");
+                    await _userManager.AddToRoleAsync(user, "Member");
                     return RedirectToAction("Index", "Home");
                 }
 
@@ -68,8 +75,10 @@ namespace Udemy.Identity.WebUI.Controllers
         }
 
 
-        public IActionResult SignIn()
-        { return View(); }
+        public IActionResult SignIn(string returnUrl)
+        {
+            return View(new UserLoginModel() { ReturnUrl=returnUrl});
+        }
 
 
         [HttpPost]
@@ -77,11 +86,27 @@ namespace Udemy.Identity.WebUI.Controllers
         {
             if (ModelState.IsValid)
             {
-                var signInResult = await _signInManager.PasswordSignInAsync(model.UserName, model.Password, false, true);
+                var signInResult = await _signInManager.PasswordSignInAsync(model.UserName, model.Password, model.RememberMe, true);
 
                 if (signInResult.Succeeded)
                 {
+                    if (string.IsNullOrWhiteSpace(model.ReturnUrl))
+                    {
+                        return Redirect(model.ReturnUrl);
+                    }
 
+                    var user = await _userManager.FindByNameAsync(model.UserName);
+                    var roles= await _userManager.GetRolesAsync(user);
+
+                    if(roles.Contains("Admin"))
+                    {
+                        return RedirectToAction("AdminPanel");
+                    }
+                    else
+                    {
+                        return RedirectToAction("MemberPanel");
+
+                    }
                 }
                 else if (signInResult.IsLockedOut)
                 {
@@ -102,6 +127,26 @@ namespace Udemy.Identity.WebUI.Controllers
             var user = User.Identity;
             var role = User.Claims.FirstOrDefault(x => x.Type == ClaimTypes.Role).Value;
             return View();
+        }
+
+
+        [Authorize(Roles ="Admin")]
+        public IActionResult AdminPanel()
+        {
+            return View();
+        }
+
+
+        [Authorize(Roles = "Member")]
+        public IActionResult Member()
+        {
+            return View();
+        }
+
+        public async Task<IActionResult> SignOut()
+        {
+            await _signInManager.SignOutAsync();
+            return RedirectToAction("Index");
         }
     }
 }
