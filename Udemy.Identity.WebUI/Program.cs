@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.FileProviders;
 using Udemy.Identity.WebUI.Context;
+using Udemy.Identity.WebUI.CustomDescriber;
 using Udemy.Identity.WebUI.Entities;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -9,12 +10,15 @@ builder.Services.AddControllersWithViews();
 builder.Services.AddIdentity<AppUser, AppRole>(opt =>
 {
     opt.Password.RequireDigit = false;
-    opt.Password.RequiredLength = 2; 
+    opt.Password.RequiredLength = 2;
     opt.Password.RequireLowercase = false;
     opt.Password.RequireUppercase = false;
     opt.Password.RequireNonAlphanumeric = false;
     //opt.SignIn.RequireConfirmedEmail = true; 
-}).AddEntityFrameworkStores<AppDbContext>();
+    opt.Lockout.MaxFailedAccessAttempts = 3;
+})
+//}).AddErrorDescriber<CustomErrorDescriber>()
+.AddEntityFrameworkStores<AppDbContext>();
 
 
 builder.Services.ConfigureApplicationCookie(opt =>

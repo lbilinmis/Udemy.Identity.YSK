@@ -77,45 +77,77 @@ namespace Udemy.Identity.WebUI.Controllers
 
         public IActionResult SignIn(string returnUrl)
         {
-            return View(new UserLoginModel() { ReturnUrl=returnUrl});
+            return View(new UserLoginModel() { ReturnUrl = returnUrl });
         }
 
 
         [HttpPost]
         public async Task<IActionResult> SignIn(UserLoginModel model)
         {
+            var mess = string.Empty;
+
             if (ModelState.IsValid)
             {
                 var signInResult = await _signInManager.PasswordSignInAsync(model.UserName, model.Password, model.RememberMe, true);
+                var user = await _userManager.FindByNameAsync(model.UserName);
+                var roles = await _userManager.GetRolesAsync(user);
 
-                if (signInResult.Succeeded)
+                if (user != null)
                 {
-                    if (string.IsNullOrWhiteSpace(model.ReturnUrl))
+                    if (signInResult.Succeeded)
                     {
-                        return Redirect(model.ReturnUrl);
+                        if (!string.IsNullOrWhiteSpace(model.ReturnUrl))
+                        {
+                            return Redirect(model.ReturnUrl);
+                        }
+
+
+                        if (roles.Contains("Admin"))
+                        {
+                            return RedirectToAction("AdminPanel");
+                        }
+                        else
+                        {
+                            return RedirectToAction("MemberPanel");
+
+                        }
                     }
-
-                    var user = await _userManager.FindByNameAsync(model.UserName);
-                    var roles= await _userManager.GetRolesAsync(user);
-
-                    if(roles.Contains("Admin"))
+                    else if (signInResult.IsLockedOut)
                     {
-                        return RedirectToAction("AdminPanel");
+                        var lockedOutEnd = await _userManager.GetLockoutEndDateAsync(user);
+                        var kalanSure = (lockedOutEnd.Value.UtcDateTime - DateTime.UtcNow).Minutes;
+                        ModelState.AddModelError("", $"Hesabınız {kalanSure} dk boyunca kitlenmiştir..");
+
+                    }
+                    else if (signInResult.IsNotAllowed)
+                    {
+
                     }
                     else
                     {
-                        return RedirectToAction("MemberPanel");
+
+                        var failedCount = await _userManager.GetAccessFailedCountAsync(user);
+                        mess = $"{_userManager.Options.Lockout.MaxFailedAccessAttempts - failedCount} kez daha hata girişte hesabınız kitlenecektir.";
 
                     }
-                }
-                else if (signInResult.IsLockedOut)
-                {
+
 
                 }
-                else if (signInResult.IsNotAllowed)
+                else
                 {
-
+                    mess =$"\"Kullanıcı adı ve parola hatalı\"";
                 }
+
+
+                ModelState.AddModelError("", mess);
+                //else if (signInResult.IsLockedOut)
+                //{
+
+                //}
+                //else if (signInResult.IsNotAllowed)
+                //{
+
+                //}
             }
             return View(model);
         }
@@ -130,7 +162,7 @@ namespace Udemy.Identity.WebUI.Controllers
         }
 
 
-        [Authorize(Roles ="Admin")]
+        [Authorize(Roles = "Admin")]
         public IActionResult AdminPanel()
         {
             return View();
